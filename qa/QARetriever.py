@@ -5,6 +5,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
+from langchain.prompts import PromptTemplate
 
 
 loader = WebBaseLoader("https://textnet.kr/about")
@@ -19,9 +20,23 @@ llm = ChatOpenAI(
     model_name="gpt-4",
     temperature=0,
 )
+
+# prompt engineering
+template = """Observe the following rules to answer the question at the end.
+1. Answer the question in a complete sentence.
+2. Answer in Korean.
+3. Answer in a polite manner with honorifics. 
+4. If you don't know the answer, just type "잘 모르겠습니다".
+5. DO NOT swear or use offensive language.
+{context}
+question: {question}
+answer:"""
+prompt = PromptTemplate.from_template(template)
+
 qa_chain = RetrievalQA.from_chain_type(
     llm,
     retriever=vectorstore.as_retriever(),
+    chain_type_kwargs={"prompt": prompt},
 )
 
 if __name__ == "__main__":
