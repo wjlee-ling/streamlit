@@ -22,21 +22,26 @@ llm = ChatOpenAI(
 )
 
 # prompt engineering
-template = """Observe the following rules to answer the question at the end.
-1. Answer the question in a complete sentence.
-2. Answer in Korean.
-3. Answer in a polite manner with honorifics. 
-4. If you don't know the answer, just type "잘 모르겠습니다".
-5. DO NOT swear or use offensive language.
-{context}
-question: {question}
+template = """Observe the following rules to answer the question at the end.\
+1. Answer the question in a complete sentence.\
+2. Answer in Korean.\
+3. Answer in a polite manner with honorifics. \
+4. If you don't know the answer, just type "잘 모르겠습니다".\
+5. DO NOT swear or use offensive language.\
+{context}\
+question: {question}\
 answer:"""
 prompt = PromptTemplate.from_template(template)
 
 qa_chain = RetrievalQA.from_chain_type(
+    # chain_type: 
+    # "stuff": default; to use all of the text from the documents in the prompt
+    # "map_reduce": to batchify docs and feeds each batch with the question to LLM, and come up with the final answer based on the answers
+    # "refine": to batchify docs and feeds the first batch to LLM, and then feeds the second batch with the answer from the first one, and so on
+    # "map-rerank": to batchify docs and feeds each batch, return a score and come up with the final answer based on the scores
     llm,
-    retriever=vectorstore.as_retriever(),
-    chain_type_kwargs={"prompt": prompt},
+    retriever=vectorstore.as_retriever(), 
+    chain_type_kwargs={"prompt": prompt}, 
 )
 
 if __name__ == "__main__":
