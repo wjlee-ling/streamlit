@@ -37,16 +37,18 @@ question: {question}\
 answer:"""
 prompt = PromptTemplate.from_template(template)
 
-qa_chain = RetrievalQA.from_chain_type(
-    # chain_type: 
-    # "stuff": default; to use all of the text from the documents in the prompt
-    # "map_reduce": to batchify docs and feeds each batch with the question to LLM, and come up with the final answer based on the answers
-    # "refine": to batchify docs and feeds the first batch to LLM, and then feeds the second batch with the answer from the first one, and so on
-    # "map-rerank": to batchify docs and feeds each batch, return a score and come up with the final answer based on the scores
-    llm,
-    retriever=vectorstore.as_retriever(), 
-    chain_type_kwargs={"prompt": prompt}, 
-)
+def load_chain():
+    qa_chain = RetrievalQA.from_chain_type(
+        # chain_type: 
+        # "stuff": default; to use all of the text from the documents in the prompt
+        # "map_reduce": to batchify docs and feeds each batch with the question to LLM, and come up with the final answer based on the answers
+        # "refine": to batchify docs and feeds the first batch to LLM, and then feeds the second batch with the answer from the first one, and so on
+        # "map-rerank": to batchify docs and feeds each batch, return a score and come up with the final answer based on the scores
+        llm,
+        retriever=vectorstore.as_retriever(), 
+        chain_type_kwargs={"prompt": prompt}, 
+    )
+    return qa_chain
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run a basic QA Retriever powered by ChatGPT-4')
@@ -54,5 +56,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     question = args.question
+    qa_chain = load_chain()
     res = qa_chain({"query": question})
     print(res)
