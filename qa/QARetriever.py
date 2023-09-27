@@ -10,6 +10,10 @@ from langchain.prompts import PromptTemplate
 
 loader = WebBaseLoader("https://textnet.kr/about")
 data = loader.load()
+# loaders = [....]
+# data = []
+# for loader in loaders:
+#     data.extend(loader.load())
 
 text_spliter = RecursiveCharacterTextSplitter(chunk_size=150, chunk_overlap=0)
 splits = text_spliter.split_documents(data)
