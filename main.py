@@ -2,7 +2,11 @@ import streamlit as st
 from qa.retriever import QARetriever 
 from streamlit import session_state as sst
 
-bot = QARetriever(url="https://textnet.kr/about")
+@st.cache_resource
+def get_bot(url="https://textnet.kr/about"):
+    return QARetriever(url=url)
+
+bot = get_bot()
 
 if "messages" not in sst:
     sst.messages = []
