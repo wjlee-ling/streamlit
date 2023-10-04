@@ -9,6 +9,7 @@ openai = "*"
 streamlit = "*"
 bs4 = "*"
 chromadb = "*"
+pysqlite3-binary = "*"
 
 [dev-packages]
 
