@@ -10,6 +10,7 @@ streamlit = "*"
 bs4 = "*"
 chromadb = "*"
 pysqlite3-binary = "*"
+tiktoken = "*"
 
 [dev-packages]
 
