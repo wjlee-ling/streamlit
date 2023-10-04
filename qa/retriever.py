@@ -16,11 +16,11 @@ class QARetriever:
     3. Answer in a polite manner with honorifics. \
     4. If you don't know the answer, just type "잘 모르겠습니다".\
     5. DO NOT swear or use offensive language.\
-    {context}\
+    Given the rules, the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
+    chat history: {chat_history}\
     question: {question}\
     answer:"""
     prompt = PromptTemplate.from_template(template)
-
     # extract (distill) the retrieved documents into an answer using LLM/Chat model
     llm = ChatOpenAI(
         model_name="gpt-4", # GPT-4를 쓰니까 chat_model 사용. 
@@ -39,8 +39,6 @@ class QARetriever:
         text_spliter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=10)
         splits = text_spliter.split_documents(data)
         vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())
-
-
         self.qa_chain = ConversationalRetrievalChain.from_llm(
             # chain_type: 
             # "stuff": default; to use all of the text from the documents in the prompt
@@ -51,6 +49,7 @@ class QARetriever:
             retriever=vectorstore.as_retriever(), 
             # chain_type_kwargs={"prompt": self.prompt}, 
             memory=self.memory,
+            condense_question_prompt=self.prompt,
         )
 
     def __call__(self, query:str):
