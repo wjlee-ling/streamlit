@@ -23,7 +23,7 @@ class QARetriever:
 
     # extract (distill) the retrieved documents into an answer using LLM/Chat model
     llm = ChatOpenAI(
-        model_name="gpt-4",
+        model_name="gpt-4", # GPT-4를 쓰니까 chat_model 사용. 
         temperature=0,
     )
 
