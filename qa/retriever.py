@@ -1,4 +1,4 @@
-import argparse
+from typing import Optional
 from langchain.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -21,19 +21,25 @@ class QARetriever:
     question: {question}\
     answer:"""
     prompt = PromptTemplate.from_template(template)
-    # extract (distill) the retrieved documents into an answer using LLM/Chat model
-    llm = ChatOpenAI(
-        model_name="gpt-4", # GPT-4를 쓰니까 chat_model 사용. 
-        temperature=0,
-    )
 
-    # memory for chat history
-    memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        return_messages=True,
-    )
+    def __init__(self, url:str, model_name:str="gpt-4", condense_question_llm:Optional[str]=None):
+        if condense_question_llm is None:
+            condense_question_llm = ChatOpenAI(
+                temperature=0,
+                model_name=model_name,
+            )            
+        # extract (distill) the retrieved documents into an answer using LLM/Chat model
+        self.llm = ChatOpenAI(
+            model_name=model_name, # GPT-4는 chat_model 사용
+            temperature=0,
+        )
 
-    def __init__(self, url:str):
+        # memory for chat history
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True,
+        )
+
         loader = WebBaseLoader(url)
         data = loader.load()
         text_spliter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=10)
@@ -53,6 +59,7 @@ class QARetriever:
             retriever=vectorstore.as_retriever(), 
             # chain_type_kwargs={"prompt": self.prompt}, 
             memory=self.memory,
+            condense_question_llm=condense_question_llm,
             condense_question_prompt=self.prompt,
         )
 
@@ -60,6 +67,8 @@ class QARetriever:
         return self.qa_chain({"question": query})
 
 if __name__ == "__main__":
+    import argparse 
+
     parser = argparse.ArgumentParser(description='Run a basic QA Retriever powered by ChatGPT-4')
     parser.add_argument('-q', '--question', type=str, required=True)
     parser.add_argument('-u', '--url', type=str, default="https://textnet.kr/about")
