@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 from langchain.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -63,7 +63,7 @@ class QARetriever:
             condense_question_prompt=self.prompt,
         )
 
-    def __call__(self, query:str):
+    def __call__(self, query:str) -> Dict[str, str]:
         return self.qa_chain({"question": query})
 
 if __name__ == "__main__":
