@@ -1,4 +1,5 @@
 from typing import Optional, Dict
+import langchain
 from langchain.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -7,6 +8,10 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
+from langchain.cache import InMemoryCache
+
+
+langchain.llm_cache = InMemoryCache()
 
 class QARetriever:
     # prompt engineering
@@ -64,7 +69,12 @@ class QARetriever:
         )
 
     def __call__(self, query:str) -> Dict[str, str]:
-        return self.qa_chain({"question": query})
+        import time
+        start_time = time.time()
+        res = self.qa_chain({"question": query})
+        end_time = time.time()
+        print(end_time - start_time)
+        return res
 
 if __name__ == "__main__":
     import argparse 

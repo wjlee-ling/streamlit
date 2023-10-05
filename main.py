@@ -5,7 +5,8 @@ from qa.retriever import QARetriever
 from streamlit import session_state as sst
 
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+if 'pysqlite3' in sys.modules:
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 @st.cache_resource
 def get_bot(url="https://textnet.kr/about"):
