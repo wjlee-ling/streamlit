@@ -1,7 +1,7 @@
 __import__('pysqlite3')
 
 import streamlit as st
-from qa.retriever import QARetriever 
+from models import QARetriever 
 from streamlit import session_state as sst
 
 import sys
