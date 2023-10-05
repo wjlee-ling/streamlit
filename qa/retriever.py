@@ -38,7 +38,11 @@ class QARetriever:
         data = loader.load()
         text_spliter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=10)
         splits = text_spliter.split_documents(data)
-        vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())
+        vectorstore = Chroma.from_documents(
+            documents=splits, 
+            embedding=OpenAIEmbeddings(), 
+            collection_metadata={"hnsw:space":"cosine"}, # default is "l2" (https://docs.trychroma.com/usage-guide)
+        )
         self.qa_chain = ConversationalRetrievalChain.from_llm(
             # chain_type: 
             # "stuff": default; to use all of the text from the documents in the prompt
