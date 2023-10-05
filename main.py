@@ -1,16 +1,19 @@
-__import__('pysqlite3')
+__import__("pysqlite3")
 
 import streamlit as st
-from models import QARetriever 
+from models import QARetriever
 from streamlit import session_state as sst
 
 import sys
-if 'pysqlite3' in sys.modules:
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+if "pysqlite3" in sys.modules:
+    sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+
 
 @st.cache_resource
 def get_bot(url="https://textnet.kr/about"):
     return QARetriever(url=url)
+
 
 @st.cache_data
 def get_info():
@@ -29,11 +32,12 @@ def get_info():
     - [x] in-memory chat history
     """
 
+
 bot = get_bot()
 info = get_info()
 
 st.title("Prompt Engineering Bot")
-with st.expander("Info"):    
+with st.expander("Info"):
     st.write(info)
 
 if "messages" not in sst:
