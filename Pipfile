@@ -11,6 +11,8 @@ bs4 = "*"
 chromadb = "*"
 pysqlite3-binary = "*"
 tiktoken = "*"
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 black = "*"
