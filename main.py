@@ -1,10 +1,11 @@
 __import__("pysqlite3")
 
-import streamlit as st
 from models import QARetriever
-from streamlit import session_state as sst
 
 import sys
+import streamlit as st
+from streamlit import session_state as sst
+
 
 if "pysqlite3" in sys.modules:
     sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
