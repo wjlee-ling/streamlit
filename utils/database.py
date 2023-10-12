@@ -12,7 +12,7 @@ def create_collection(
     directory: str = "db/chroma/",
 ) -> VectorStore:
     """Build a new collection for the local Chroma vectorstore"""
-
+    directory = directory + "/" + collection_name
     return Chroma.from_documents(
         collection_name=collection_name,
         documents=docs,
