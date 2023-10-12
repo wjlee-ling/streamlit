@@ -17,6 +17,14 @@ def get_bot(url="https://textnet.kr/about"):
 
     return BaseBot.from_new_collection(
         loader=WebBaseLoader(url),
+        collection_name="legacy_webpage_about",
+        configs={
+            "splitter": {
+                "chunk_size": 500,
+                "chunk_overlap": 10,
+            }
+        }
+        # 나머지 모듈은 default 값으로 설정됨
     )
 
 

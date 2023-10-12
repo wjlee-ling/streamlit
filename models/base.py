@@ -26,6 +26,7 @@ class BaseBot:
         llm: Optional[BaseLanguageModel] = None,
         vectorstore: Optional[VectorStore] = None,
         condense_question_llm: Optional[BaseLanguageModel] = None,
+        configs: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.prompt = (
             prompt
@@ -80,6 +81,26 @@ class BaseBot:
     def __call__(self, question: str):
         return self.chain(question)
 
+    @staticmethod
+    def __configure__(configs: Dict[str, Any]):
+        """
+        각 컴포넌트에 kwargs로 들어가는 인자들의 값을 설정합니다. 사용자가 설정하지 않은 값들의 기본값을 설정합니다.
+
+        TO-DO:
+        - choose size appropriate to llm context size
+        """
+        default_configs = {}
+
+        splitter_configs = (
+            configs.get(
+                "splitter", {"chunk_size": 500, "chunk_overlap": 20}
+            )  # default: 4000 / 200 # TO-DO
+            if configs
+            else {"chunk_size": 500, "chunk_overlap": 20}
+        )
+        default_configs["splitter"] = splitter_configs
+        return default_configs
+
     @classmethod
     def from_new_collection(
         cls,
@@ -92,21 +113,10 @@ class BaseBot:
         configs: Optional[Dict[str, Dict[str, str]]] = None,
     ):
         """Build new collection AND chain based on it"""
-        splitter_configs = (
-            configs.get(
-                "splitter", {"chunk_size": 500, "chunk_overlap": 30}
-            )  # default: 4000 / 200 # TO-DO: choose size appropriate to llm context size
-            if configs
-            else {"chunk_size": 500, "chunk_overlap": 30}
-        )
-
+        configs = cls.__configure__(configs)
         data = loader.load()
-        splitter = (
-            RecursiveCharacterTextSplitter(
-                **splitter_configs,
-            )
-            if splitter is None
-            else splitter
+        splitter = RecursiveCharacterTextSplitter(
+            **configs["splitter"],
         )
 
         docs = splitter.split_documents(data)
@@ -119,4 +129,5 @@ class BaseBot:
             llm=llm,
             vectorstore=vectorstore,
             condense_question_llm=condense_question_llm,
+            configs=configs,
         )
