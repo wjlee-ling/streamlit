@@ -1,14 +1,15 @@
-from templates import rules, template_en, template_kor
+from .templates import rules, template_en, template_kor
+from utils import create_collection
 
 import langchain
-from typing import Optional, Any, Union
+from typing import Optional, Any, Dict
 from langchain.schema import BaseDocumentTransformer
 from langchain.schema.prompt_template import BasePromptTemplate
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.schema.vectorstore import VectorStore
 from langchain.document_loaders.base import BaseLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import ConversationBufferMemory
 from langchain.cache import InMemoryCache
 from langchain.chains import ConversationalRetrievalChain
@@ -16,16 +17,16 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
 
-class CustomRetrievalChain:
+class BaseBot:
     langchain.llm_cache = InMemoryCache()
 
     def __init__(
         self,
-        prompt: Union[BasePromptTemplate, None] = None,
-        llm: Union[BaseLanguageModel, None] = None,
-        vectorstore: Union[VectorStore, None] = None,
+        prompt: Optional[BasePromptTemplate] = None,
+        llm: Optional[BaseLanguageModel] = None,
+        vectorstore: Optional[VectorStore] = None,
         condense_question_llm: Optional[BaseLanguageModel] = None,
-    ):
+    ) -> None:
         self.prompt = (
             prompt
             if prompt
@@ -61,10 +62,6 @@ class CustomRetrievalChain:
             return_messages=True,
         )
 
-        # components for loading and indexing raw data
-        self.loader = None
-        self.splitter = None
-
         # build a chain with the given components
         self.chain = ConversationalRetrievalChain.from_llm(
             # chain_type:
@@ -80,38 +77,46 @@ class CustomRetrievalChain:
             condense_question_prompt=self.prompt,
         )
 
-    def __call__(self):
-        return self.chain
-
-    def answer(self, question: str) -> str:
-        return self.chain.answer(question)
+    def __call__(self, question: str):
+        return self.chain(question)
 
     @classmethod
-    def build_collection(
+    def from_new_collection(
         cls,
-        collection_name: str,
         loader: BaseLoader,
-        splitter: BaseDocumentTransformer,
-        **kwargs: Any,
+        splitter: Optional[BaseDocumentTransformer] = None,
+        collection_name: str = "default",
+        prompt: Optional[BasePromptTemplate] = None,
+        llm: Optional[BaseLanguageModel] = None,
+        condense_question_llm: Optional[BaseLanguageModel] = None,
+        configs: Optional[Dict[str, Dict[str, str]]] = None,
     ):
-        """Build a new collection for the local Chroma vectorstore"""
-        cls.loader = loader
-        cls.splitter = splitter
-
-        data = cls.loader.load()
-        splits = cls.splitter.split_documents(data)
-        cls.vectorstore = Chroma.from_documents(
-            collection_name=collection_name,
-            documents=splits,
-            embedding=OpenAIEmbeddings(),
-            collection_metadata={
-                "hnsw:space": "cosine"
-            },  # default is "l2" (https://docs.trychroma.com/usage-guide)
-            **kwargs,
+        """Build new collection AND chain based on it"""
+        splitter_configs = (
+            configs.get(
+                "splitter", {"chunk_size": 500, "chunk_overlap": 30}
+            )  # default: 4000 / 200 # TO-DO: choose size appropriate to llm context size
+            if configs
+            else {"chunk_size": 500, "chunk_overlap": 30}
         )
 
+        data = loader.load()
+        splitter = (
+            RecursiveCharacterTextSplitter(
+                **splitter_configs,
+            )
+            if splitter is None
+            else splitter
+        )
 
-chain = CustomRetrievalChain()
-print(chain.llm)
-print(chain.vectorstore)
-print(chain.retriever)
+        docs = splitter.split_documents(data)
+        vectorstore = create_collection(
+            collection_name=collection_name,
+            docs=docs,
+        )
+        return cls(
+            prompt=prompt,
+            llm=llm,
+            vectorstore=vectorstore,
+            condense_question_llm=condense_question_llm,
+        )

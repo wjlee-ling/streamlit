@@ -1,6 +1,6 @@
 __import__("pysqlite3")
 
-from models import QARetriever
+from models import BaseBot
 
 import sys
 import streamlit as st
@@ -13,7 +13,11 @@ if "pysqlite3" in sys.modules:
 
 @st.cache_resource
 def get_bot(url="https://textnet.kr/about"):
-    return QARetriever(url=url)
+    from langchain.document_loaders import WebBaseLoader
+
+    return BaseBot.from_new_collection(
+        loader=WebBaseLoader(url),
+    )
 
 
 @st.cache_data
