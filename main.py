@@ -71,6 +71,7 @@ if prompt := st.chat_input("무엇이든 물어보세요"):
 
     # Get assistant response
     response = bot(prompt)
+    print(response)
     answer = response["answer"]
 
     # Display assistant response in chat message container

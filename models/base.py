@@ -57,10 +57,9 @@ class BaseBot:
         #     )
         # else:
         #     self.condense_question_prompt = CONDENSE_QUESTION_TEMPLATE
-        if condense_question_prompt is None:
-            self.condense_question_prompt = CONDENSE_QUESTION_TEMPLATE
-        else:
-            self.condense_question_prompt = condense_question_prompt
+        self.condense_question_prompt = (
+            condense_question_prompt or CONDENSE_QUESTION_TEMPLATE
+        )
 
         # llm for doc-chain
         self.llm = (
@@ -89,7 +88,8 @@ class BaseBot:
         )
         self.memory = ConversationBufferMemory(
             memory_key="chat_history",
-            return_messages=True,
+            # output_key="answer",
+            return_messages=False,
         )
 
         # build a chain with the given components
@@ -108,8 +108,9 @@ class BaseBot:
             condense_question_prompt=self.condense_question_prompt,
             combine_docs_chain_kwargs=docs_chain_kwargs,
             rephrase_question=True,  # default: True; Will pass the new generated question for retrieval
-            return_source_documents=True,
+            # return_source_documents=True,
             get_chat_history=None,  # default: None -> will use default;
+            response_if_no_docs_found="잘 모르겠습니다.",
         )
 
     def __call__(self, question: str):
