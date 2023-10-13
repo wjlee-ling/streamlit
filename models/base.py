@@ -65,6 +65,7 @@ class BaseBot:
 
         # build a chain with the given components
         self.chain = ConversationalRetrievalChain.from_llm(
+            # https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/conversational_retrieval/base.py#L268
             # chain_type:
             # "stuff": default; to use all of the text from the documents in the prompt
             # "map_reduce": to batchify docs and feeds each batch with the question to LLM, and come up with the final answer based on the answers

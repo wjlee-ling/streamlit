@@ -1,3 +1,10 @@
+"""
+chain 타입에 따라 template의 포맷과 variable이 달라짐.
+`ConversationalRetrievalChain`의 경우, quenstion-condensing을 위한 `CONDENSE_QUESTION_PROMPT` template과 answer-generation을 위한 `QA_PROMPT` template이 필요함. (https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/conversational_retrieval/prompts.py#L10)
+`CONDENSE_QUESTION_PROMPT` template의 경우, `chat_history`와 `question`을 variable로, `QA_PROMPT`의 경우 `question`과 `context`를 variable로 사용함.
+
+"""
+
 rules = """[규칙] \
 1. [답변]은 온전한 문장으로 작성하라. \
 2. [답변]은 한국어로 작성하라. \

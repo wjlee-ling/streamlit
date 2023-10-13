@@ -41,8 +41,9 @@ def get_info():
 
     **[TO-DO]**
     - [ ] 더 많은 문서를 이용하여 임베딩 & DB에 저장
-    - [ ] question-condensing w/ `ConversationalRetrievalChain`
+    - [x] question-condensing w/ `ConversationalRetrievalChain`
     - [x] in-memory chat history
+    - [X] BaseBot 기반 리팩토링
     """
 
 
