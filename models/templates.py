@@ -6,6 +6,8 @@ chain 타입에 따라 template의 포맷과 variable이 달라짐.
 2. `QA_PROMPT`는 `from_llm()` 내부 `load_qa_chain()`에서 `chain_type`("stuff" by default)을 받고 그 종류에 따라 `langchain.chains.question_answering`에 지정된 default prompt를 사용함.
     커스텀하려면 `combine_docs_chain_kwargs`에 해당 prompt_type 명시해야함 (참고: https://github.com/langchain-ai/langchain/blob/c2d1d903fa35b91018b4d777db2b008fcbaa9fbc/langchain/chains/question_answering/__init__.py#L134)
 """
+from langchain.prompts import PromptTemplate
+
 
 rules = """[규칙] \
 1. [최종 답변]은 온전한 문장으로 작성하라. \
@@ -32,15 +34,23 @@ template_kor = """{rules} \
 위 [규칙]과 [대화내역]을 참고하여 [질문]에 대한 [답변]을 작성하라. \
 [답변] """
 
-condense_question_template = (
-    "[대화 내역]을 기반으로 [사용자 질문]을 고치거나 보강하여 한국어로 [수정된 사용자 질문]을 작성하라",
-    "[대화 내역] {chat_history}",
-    "[사용자 질문] {question}",
-    "[수정된 사용자 질문] ",
+CONDENSE_QUESTION_TEMPLATE = PromptTemplate.from_template(
+    " ".join(
+        (
+            "[대화 내역]을 기반으로 [사용자 질문]을 고치거나 보강하여 한국어로 [수정된 사용자 질문]을 작성하라",
+            "[대화 내역] {chat_history}",
+            "[사용자 질문] {question}",
+            "[수정된 사용자 질문] ",
+        )
+    )
 )
 
-stuff_qa_template = (
-    "[질문]과 [context]를 바탕으로 [최종 답변]을 작성하라. [최종 답변] 작성시 아래 [규칙]을 참고하라.",
-    rules,
-    "[최종 답변] ",
+STUFF_QA_TEMPLATE = PromptTemplate.from_template(
+    " ".join(
+        (
+            "[질문]과 [context]를 바탕으로 [최종 답변]을 작성하라. [최종 답변] 작성시 아래 [규칙]을 참고하라.",
+            rules,
+            "[최종 답변] ",
+        )
+    )
 )
