@@ -88,8 +88,8 @@ class BaseBot:
         )
         self.memory = ConversationBufferMemory(
             memory_key="chat_history",
-            # output_key="answer",
-            return_messages=False,
+            output_key="answer",  # ☑️ required if return_source_documents=True
+            return_messages=True,  # ☑️ required if return_source_documents=True
         )
 
         # build a chain with the given components
@@ -108,7 +108,7 @@ class BaseBot:
             condense_question_prompt=self.condense_question_prompt,
             combine_docs_chain_kwargs=docs_chain_kwargs,
             rephrase_question=True,  # default: True; Will pass the new generated question for retrieval
-            # return_source_documents=True,
+            return_source_documents=True,
             get_chat_history=None,  # default: None -> will use default;
             response_if_no_docs_found="잘 모르겠습니다.",
         )

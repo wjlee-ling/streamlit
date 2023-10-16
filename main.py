@@ -67,10 +67,10 @@ if prompt := st.chat_input("무엇이든 물어보세요"):
     with st.chat_message("user"):
         st.markdown(prompt)
     # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    sst.messages.append({"role": "user", "content": prompt})
 
     # Get assistant response
-    response = bot(prompt)
+    response = bot(prompt)  # keys: [question, chat_history, answer, source_documents]
     print(response)
     answer = response["answer"]
 
@@ -78,4 +78,4 @@ if prompt := st.chat_input("무엇이든 물어보세요"):
     with st.chat_message("assistant"):
         st.markdown(answer)
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": answer})
+        sst.messages.append({"role": "assistant", "content": answer})
