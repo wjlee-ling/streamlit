@@ -31,7 +31,7 @@ def get_bot(url="https://textnet.kr/about"):
 @st.cache_data
 def get_info():
     return """
-    이 챗봇은 'https://textnet.kr/about'페이지 기반으로 답변합니다.
+    이 챗봇은 'https://textnet.kr/about' 페이지 기반으로 답변합니다.
 
     **[사용 예시]**\n
     Q: 회사 대표 이름은\n
@@ -73,9 +73,14 @@ if prompt := st.chat_input("무엇이든 물어보세요"):
     response = bot(prompt)  # keys: [question, chat_history, answer, source_documents]
     print(response)
     answer = response["answer"]
+    source = response["source_documents"][0]
+    source_content = source.page_content.replace("\n", " ")
+    source_src = source.metadata["source"]
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(answer)
+        if "죄송합니다" not in answer:
+            st.info(f"출처 문서: {source_content}\n\n출처 링크: {source_src}")
         # Add assistant response to chat history
         sst.messages.append({"role": "assistant", "content": answer})
