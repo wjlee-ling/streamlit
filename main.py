@@ -1,6 +1,6 @@
 __import__("pysqlite3")
 
-from models import QARetriever
+from models import BaseBot
 
 import sys
 import streamlit as st
@@ -13,13 +13,25 @@ if "pysqlite3" in sys.modules:
 
 @st.cache_resource
 def get_bot(url="https://textnet.kr/about"):
-    return QARetriever(url=url)
+    from langchain.document_loaders import WebBaseLoader
+
+    return BaseBot.from_new_collection(
+        loader=WebBaseLoader(url),
+        collection_name="legacy_webpage_about",
+        configs={
+            "splitter": {
+                "chunk_size": 500,
+                "chunk_overlap": 10,
+            }
+        }
+        # 나머지 모듈은 default 값으로 설정됨
+    )
 
 
 @st.cache_data
 def get_info():
     return """
-    이 챗봇은 'https://textnet.kr/about'페이지 기반으로 답변합니다.
+    이 챗봇은 'https://textnet.kr/about' 페이지 기반으로 답변합니다.
 
     **[사용 예시]**\n
     Q: 회사 대표 이름은\n
@@ -29,8 +41,9 @@ def get_info():
 
     **[TO-DO]**
     - [ ] 더 많은 문서를 이용하여 임베딩 & DB에 저장
-    - [ ] question-condensing w/ `ConversationalRetrievalChain`
+    - [x] question-condensing w/ `ConversationalRetrievalChain`
     - [x] in-memory chat history
+    - [X] BaseBot 기반 리팩토링
     """
 
 
@@ -54,14 +67,20 @@ if prompt := st.chat_input("무엇이든 물어보세요"):
     with st.chat_message("user"):
         st.markdown(prompt)
     # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    sst.messages.append({"role": "user", "content": prompt})
 
     # Get assistant response
-    response = bot(prompt)
+    response = bot(prompt)  # keys: [question, chat_history, answer, source_documents]
+    print(response)
     answer = response["answer"]
+    source = response["source_documents"][0]
+    source_content = source.page_content.replace("\n", " ")
+    source_src = source.metadata["source"]
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(answer)
+        if "죄송합니다" not in answer:
+            st.info(f"출처 문서: {source_content}\n\n출처 링크: {source_src}")
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": answer})
+        sst.messages.append({"role": "assistant", "content": answer})
