@@ -1,4 +1,5 @@
-from models import CONDENSE_QUESTION_TEMPLATE, STUFF_QA_TEMPLATE, BasePreprocessor
+from modules.preprocessors import BasePreprocessor
+from modules.templates import CONDENSE_QUESTION_TEMPLATE
 from utils import create_collection
 
 import langchain
@@ -185,6 +186,7 @@ class BaseBot:
         cls,
         loader: BaseLoader,
         splitter: Optional[BaseDocumentTransformer] = None,
+        preprocessor: Optional[BasePreprocessor] = None,
         collection_name: str = "default",
         llm: Optional[BaseLanguageModel] = None,
         condense_question_llm: Optional[BaseLanguageModel] = None,
@@ -201,11 +203,20 @@ class BaseBot:
             **configs["splitter"],
         )
 
-        docs = splitter.split_documents(data)
+        if preprocessor is None:
+            docs = splitter.split_documents(data)
+        else:
+            docs = preprocessor.preprocess_and_split(
+                docs=data,
+                splitter=splitter,
+                fn=configs.get("preprocessing_fn", None),
+            )
+
         vectorstore = create_collection(
             collection_name=collection_name,
             docs=docs,
         )
+
         return cls(
             # prompts=prompts,
             llm=llm,
