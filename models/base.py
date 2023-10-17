@@ -1,4 +1,4 @@
-from models import CONDENSE_QUESTION_TEMPLATE, STUFF_QA_TEMPLATE
+from models import CONDENSE_QUESTION_TEMPLATE, STUFF_QA_TEMPLATE, BasePreprocessor
 from utils import create_collection
 
 import langchain
@@ -197,7 +197,7 @@ class BaseBot:
         """Build new collection AND chain based on it"""
         configs = cls.__configure__(configs)
         data = loader.load()
-        splitter = RecursiveCharacterTextSplitter(
+        splitter = splitter or RecursiveCharacterTextSplitter(
             **configs["splitter"],
         )
 
