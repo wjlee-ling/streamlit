@@ -54,3 +54,12 @@ STUFF_QA_TEMPLATE = PromptTemplate.from_template(
         )
     )
 )
+
+PDF_PREPROCESS_TEMPLATE = PromptTemplate.from_template(
+    template="""다음 [doc]는 PDF 리더가 인식한 텍스트로 오류가 많고 글의 구조가 분명하지 않다. 다음 [사항]을 중점으로 [doc]를 수정하라.\
+         1. 띄어쓰기 및 개행문자('\n') 2. 오탈자 3. 특수문자  4. 나열 리스트: 최대한 원문의 구조를 유지하라 \
+        5. 새로운 내용을 추가하거나 지어내어 수정하지 말라 6. 괄호의 위치가 잘못됬을 경우 고치나 함부러 삭제하지 마라 \
+        7. 수정한 [doc] 내용만 작성하고 원래 내용과 상관없는 시스템 메시지 등 기타 정보는 추가하지 마라 \
+        [doc] {doc}\n \
+        [수정] """,
+)

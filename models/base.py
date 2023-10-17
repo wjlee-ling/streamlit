@@ -1,4 +1,4 @@
-from .templates import CONDENSE_QUESTION_TEMPLATE, STUFF_QA_TEMPLATE
+from models import CONDENSE_QUESTION_TEMPLATE, STUFF_QA_TEMPLATE
 from utils import create_collection
 
 import langchain
