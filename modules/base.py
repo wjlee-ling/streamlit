@@ -1,4 +1,5 @@
-from .templates import CONDENSE_QUESTION_TEMPLATE, STUFF_QA_TEMPLATE
+from modules.preprocessors import BasePreprocessor
+from modules.templates import CONDENSE_QUESTION_TEMPLATE
 from utils import create_collection
 
 import langchain
@@ -169,13 +170,16 @@ class BaseBot:
         - choose size appropriate to llm context size
         """
         default_configs = {}
-
+        default_splitter_configs = {
+            "chunk_size": 1000,
+            "chunk_overlap": 150,
+        }
         splitter_configs = (
             configs.get(
-                "splitter", {"chunk_size": 500, "chunk_overlap": 20}
+                "splitter", default_splitter_configs
             )  # default: 4000 / 200 # TO-DO
             if configs
-            else {"chunk_size": 500, "chunk_overlap": 20}
+            else default_splitter_configs
         )
         default_configs["splitter"] = splitter_configs
         return default_configs
@@ -185,6 +189,7 @@ class BaseBot:
         cls,
         loader: BaseLoader,
         splitter: Optional[BaseDocumentTransformer] = None,
+        preprocessor: Optional[BasePreprocessor] = None,
         collection_name: str = "default",
         llm: Optional[BaseLanguageModel] = None,
         condense_question_llm: Optional[BaseLanguageModel] = None,
@@ -197,15 +202,30 @@ class BaseBot:
         """Build new collection AND chain based on it"""
         configs = cls.__configure__(configs)
         data = loader.load()
-        splitter = RecursiveCharacterTextSplitter(
-            **configs["splitter"],
-        )
 
-        docs = splitter.split_documents(data)
+        if preprocessor is None:
+            splitter = splitter or RecursiveCharacterTextSplitter(
+                **configs["splitter"],
+            )
+            print(
+                "💥The default text-splitter `RecursiveCharacterTextSplitter` will be used."
+            )
+            docs = splitter.split_documents(data)
+        else:
+            if splitter:
+                print(
+                    "💥The given text-splitter will be overriden by that of the given preprocessor."
+                )
+            docs = preprocessor.preprocess_and_split(
+                docs=data,
+                fn=configs.get("preprocessing_fn", None),
+            )
+
         vectorstore = create_collection(
             collection_name=collection_name,
             docs=docs,
         )
+
         return cls(
             # prompts=prompts,
             llm=llm,
