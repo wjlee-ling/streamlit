@@ -179,7 +179,7 @@ if uploaded_file is not None:
                 # output = io.StringIO()
                 # pprint(source_content, stream=output)
                 # output_string = output.getvalue()
-                with st.expander("참고한 문서 예시"):
+                with st.expander("참고한 문서 일부 예시"):
                     st.info(f"주요 출처 페이지: {source_page}")
                     st.markdown(source_content)
 
