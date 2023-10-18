@@ -2,9 +2,17 @@ from modules.preprocessors.base import BasePreprocessor
 
 from typing import List, Dict, Callable, Optional
 from langchain.schema import Document
+from langchain.text_splitter import MarkdownTextSplitter
 
 
 class PDFPreprocessor(BasePreprocessor):
+    @property
+    def splitter(self):
+        if self._splitter is None:
+            return MarkdownTextSplitter()
+        else:
+            return self._splitter
+
     def get_default_fn(
         self,
         doc: Document,

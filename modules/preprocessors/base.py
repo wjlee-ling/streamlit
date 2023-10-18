@@ -10,7 +10,9 @@ from langchain.schema.language_model import BaseLanguageModel
 from langchain.chat_models.base import BaseChatModel
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import (
+    RecursiveCharacterTextSplitter,
+)
 
 
 class BasePreprocessor:
@@ -31,7 +33,7 @@ class BasePreprocessor:
             prompt=self.prompt,
             output_key="output",  # GPT 답변이 저장될 key; default='text'
         )
-        self.splitter = splitter or RecursiveCharacterTextSplitter()
+        self._splitter = splitter
 
     @abstractmethod
     def preprocess(
@@ -39,7 +41,12 @@ class BasePreprocessor:
     ) -> List[Document]:
         """Return a new list of Documents with preprocessed contents. Can apply `fn` to each 'page_content' before preprocessing.\
         refer: https://api.python.langchain.com/en/latest/chains/langchain.chains.llm.LLMChain.html"""
-        return
+        pass
+
+    @property
+    @abstractmethod
+    def splitter(self):
+        pass
 
     def _split(self, docs: List[Document]):
         return self.splitter.split_documents(docs)
@@ -50,6 +57,7 @@ class BasePreprocessor:
         fn: Optional[Callable] = None,
     ) -> List[Document]:
         self.file = open("./splits_output.txt", "w")
+
         start_preprocess = time()
         docs = self.preprocess(docs, fn)
         end_preprocess = time()
