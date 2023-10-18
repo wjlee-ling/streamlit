@@ -3,6 +3,7 @@ data/
 
 db/chroma/*
 !db/chroma/woori_pdf_prev_md
+!db/chroma/compare
 
 env
 Pipfile
