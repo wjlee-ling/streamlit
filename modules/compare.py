@@ -24,7 +24,7 @@ class CompareBot:
 
     langchain.llm_cache = InMemoryCache()
 
-    def __init__(self):
+    def __init__(self, vectorstore: None):
         # same settings w/ BaseBot
         self.condense_question_prompt = CONDENSE_QUESTION_TEMPLATE
         docs_chain_type = "stuff"
@@ -36,7 +36,9 @@ class CompareBot:
             verbose=True,
         )
 
-        self.vectorstore = Chroma(collection_name="compare")
+        self.vectorstore = (
+            Chroma(collection_name="compare") if vectorstore is None else vectorstore
+        )
         self.retriever = self.vectorstore.as_retriever()
         self.condense_question_llm = ChatOpenAI(
             model_name="gpt-3.5-turbo-0613", temperature=0
