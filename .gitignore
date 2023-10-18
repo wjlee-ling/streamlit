@@ -4,7 +4,7 @@ data/
 db/chroma/*
 !db/chroma/woori_pdf_prev_md
 
-# env
+env
 Pipfile
 Pipfile.lock
 
