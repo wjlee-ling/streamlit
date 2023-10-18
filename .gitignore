@@ -1,6 +1,8 @@
 .vscode/
 data/
-db/
+
+db/chroma/*
+!db/chroma/woori_pdf_prev_md
 
 # env
 Pipfile
