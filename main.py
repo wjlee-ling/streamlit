@@ -113,22 +113,20 @@ if "messages" not in sst:
 with st.expander("Info"):
     st.info(info)
     st.write("**비교 예시**")
-    col1, col2 = st.columns(2)
-    bad_ex = "`- 16 -붙임 제안참가 서약서2【 】 \n제안참가 서약서\n \n제안 건 명 우리은행 언어모델 : ( ) AI Banker ■ 의 학습 데이터셋 구축\n \n우리은행 AI Banker언어모델의 학습 데이터셋 구축 사업 제안에 참여할 기회를 주신 \n것을 감사드리며 우리은행과 제안사 상호간에 준수할 기본 사항이 다음과 같음을 확 , \n인하고 이를 이행하겠습니다.`"
-    good_ex = """## [붙임 2] 제안참가 서약서
-
-### 제안참가 서약서
-
-#### 제안 건 명: (우리은행) AI Banker 언어모델의 학습 데이터셋 구축
-
-우리은행 AI Banker 언어모델의 학습 데이터셋 구축 사업 제안에 참여할 기회를 주신 것을 감사드리며, 우리은행과 제안사 상호간에 준수할 기본 사항이 다음과 같음을 확인하고 이를 이행하겠습니다.
-    """
-    with col1:
-        st.write("**디폴트 세팅값으로 생성한 DB**")
-        st.write(bad_ex)
-    with col2:
-        st.write("**조정한 세팅값과 전처리 모듈을 추가해 생성한 DB**")
-        st.write(good_ex)
+    st.image("public/예시1.png")
+#     col1, col2 = st.columns(2)
+#     bad_ex = "`- 16 -붙임 제안참가 서약서2【 】 \n제안참가 서약서\n \n제안 건 명 우리은행 언어모델 : ( ) AI Banker ■ 의 학습 데이터셋 구축\n \n우리은행 AI Banker언어모델의 학습 데이터셋 구축 사업 제안에 참여할 기회를 주신 \n것을 감사드리며 우리은행과 제안사 상호간에 준수할 기본 사항이 다음과 같음을 확 , \n인하고 이를 이행하겠습니다.`"
+#     good_ex = """## [붙임 2] 제안참가 서약서
+# ### 제안참가 서약서
+# #### 제안 건 명: (우리은행) AI Banker 언어모델의 학습 데이터셋 구축
+# 우리은행 AI Banker 언어모델의 학습 데이터셋 구축 사업 제안에 참여할 기회를 주신 것을 감사드리며, 우리은행과 제안사 상호간에 준수할 기본 사항이 다음과 같음을 확인하고 이를 이행하겠습니다.
+#     """
+#     with col1:
+#         st.write("**디폴트 세팅값으로 생성한 DB**")
+#         st.write(bad_ex)
+#     with col2:
+#         st.write("**조정한 세팅값과 전처리 모듈을 추가해 생성한 DB**")
+#         st.write(good_ex)
 
 # uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 uploaded_file = 1
