@@ -5,7 +5,7 @@ from modules.templates import (
 )
 from modules.preprocessors import PDFPreprocessor
 
-from langchain.document_loaders import PyPDFDirectoryLoader, PDFPlumberLoader
+from langchain.document_loaders import PDFPlumberLoader
 from langchain.text_splitter import MarkdownTextSplitter
 
 
@@ -15,7 +15,6 @@ pdf_loader = PDFPlumberLoader(
 )
 preprocessor = PDFPreprocessor(
     prompt=PDF_PREPROCESS_TEMPLATE_WITH_CONTEXT,
-    splitter=MarkdownTextSplitter(),
 )
 
 bot = BaseBot.from_new_collection(

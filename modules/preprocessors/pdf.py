@@ -18,6 +18,9 @@ class PDFPreprocessor(BasePreprocessor):
         doc: Document,
         previous_doc_content: List = [None],
     ) -> Dict:
+        """
+        디폴트 전처리 함수. 현재 doc뿐만 아니라 이전 doc의 content의 뒷부분도 같이 GPT에 전달하여, 필요시 활용하게끔 함 (e.g. 페이지 넘어감).
+        """
         page_content = doc.page_content
 
         if previous_doc_content[0] is None:
@@ -35,15 +38,19 @@ class PDFPreprocessor(BasePreprocessor):
     def preprocess(
         self,
         docs: List[Document],
-        fn: Optional[Callable[List[Document], Dict]] = None,
+        fn: Optional[Callable[Document, Dict]] = None,
     ) -> List[Document]:
-        """batch로 한번에 요청하여 빠르게 전처리. 다만 API 요청 제한이 있으므로 주의."""
+        """
+        batch로 한번에 요청하여 빠르게 전처리. 다만 API 요청 제한이 있으므로 주의.
+        Args
+            - fn: `Document`별 전처리 함수. 사용하는 템플렛에 맞게 전처리 함수 구현해야 함.
+        """
 
         fn = fn or self.get_default_fn
         new_page_contents = self.chain.batch(
             list(
                 map(
-                    lambda doc: fn(doc),
+                    lambda doc: fn(doc) if fn,
                     docs,
                 )
             )
