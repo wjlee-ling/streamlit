@@ -170,13 +170,16 @@ class BaseBot:
         - choose size appropriate to llm context size
         """
         default_configs = {}
-
+        default_splitter_configs = {
+            "chunk_size": 1000,
+            "chunk_overlap": 150,
+        }
         splitter_configs = (
             configs.get(
-                "splitter", {"chunk_size": 500, "chunk_overlap": 20}
+                "splitter", default_splitter_configs
             )  # default: 4000 / 200 # TO-DO
             if configs
-            else {"chunk_size": 500, "chunk_overlap": 20}
+            else default_splitter_configs
         )
         default_configs["splitter"] = splitter_configs
         return default_configs
@@ -199,16 +202,15 @@ class BaseBot:
         """Build new collection AND chain based on it"""
         configs = cls.__configure__(configs)
         data = loader.load()
-        splitter = splitter or RecursiveCharacterTextSplitter(
-            **configs["splitter"],
-        )
 
         if preprocessor is None:
+            splitter = splitter or RecursiveCharacterTextSplitter(
+                **configs["splitter"],
+            )
             docs = splitter.split_documents(data)
         else:
             docs = preprocessor.preprocess_and_split(
                 docs=data,
-                splitter=splitter,
                 fn=configs.get("preprocessing_fn", None),
             )
 

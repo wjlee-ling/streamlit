@@ -1,6 +1,6 @@
 __import__("pysqlite3")
 
-from models import BaseBot
+from modules import BaseBot
 
 import sys
 import streamlit as st
