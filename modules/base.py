@@ -207,8 +207,15 @@ class BaseBot:
             splitter = splitter or RecursiveCharacterTextSplitter(
                 **configs["splitter"],
             )
+            print(
+                "💥The default text-splitter `RecursiveCharacterTextSplitter` will be used."
+            )
             docs = splitter.split_documents(data)
         else:
+            if splitter:
+                print(
+                    "💥The given text-splitter will be overriden by that of the given preprocessor."
+                )
             docs = preprocessor.preprocess_and_split(
                 docs=data,
                 fn=configs.get("preprocessing_fn", None),
