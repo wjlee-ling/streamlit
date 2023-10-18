@@ -167,10 +167,10 @@ if uploaded_file is not None:
         )  # keys: [question, chat_history, answer, source_documents]
         print(response)
         comp_answer = comp_response["answer"]
-        comp_source = comp_response["source_documents"][0]
-        comp_source_content = comp_source.page_content  # .replace("\n", " ")
-        comp_source_src = comp_source.metadata["source"]
-        comp_source_page = comp_source.metadata["page"]
+        # comp_source = comp_response["source_documents"][0]
+        # comp_source_content = comp_source.page_content  # .replace("\n", " ")
+        # comp_source_src = comp_source.metadata["source"]
+        # comp_source_page = comp_source.metadata["page"]
 
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
@@ -183,7 +183,7 @@ if uploaded_file is not None:
                     st.info(f"주요 출처 페이지: {source_page}")
                     st.markdown(source_content)
 
-                with st.expander("기본 세팅값 + 전처리 없는 모델과 비교하기"):
+                with st.expander("cf. 기본 세팅값 + 전처리 없는 모델의 답변"):
                     st.markdown(comp_answer)
 
                 # st.info(f"출처 문서: {output_string}\n\n출처 링크: {source_src}")
