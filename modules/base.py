@@ -1,6 +1,6 @@
 from modules.preprocessors import BasePreprocessor
 from modules.templates import CONDENSE_QUESTION_TEMPLATE
-from utils import create_collection
+from utils import create_collection, create_save_collection
 
 import langchain
 from typing import Optional, Any, Dict, Union
@@ -223,11 +223,13 @@ class BaseBot:
                 fn=configs.get("preprocessing_fn", None),
             )
 
-        vectorstore = create_collection(
+        vectorstore = create_save_collection(
             collection_name=collection_name,
             docs=docs,
         )
-
+        print("========================" + "test" + "========================")
+        result = vectorstore.similarity_search_with_score(query="제안서 데드라인은?", k=4)
+        print(result)
         return cls(
             # prompts=prompts,
             llm=llm,
