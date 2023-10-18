@@ -40,8 +40,8 @@ def create_save_collection(
     vectorstore = Chroma(
         collection_name=collection_name,
         embedding_function=embeddings,
-        client_Settings=client_settings,
-        persist_direcitory=DB_DIR,
+        client_settings=client_settings,
+        persist_directory=DB_DIR,
     )
     vectorstore.add_documents(docs, embeddings)
     vectorstore.persist()
