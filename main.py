@@ -78,8 +78,6 @@ def get_info():
 st.title("GPT-Powered Chat Bot")
 info = get_info()
 
-# with st.expander("Info"):
-#     st.write(info)
 
 if "messages" not in sst:
     sst.messages = []

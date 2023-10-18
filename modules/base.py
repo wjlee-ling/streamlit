@@ -82,7 +82,7 @@ class BaseBot:
         self.retriever = self.vectorstore.as_retriever()
         self.condense_question_llm = (
             ChatOpenAI(
-                model_name="gpt-4",
+                model_name="gpt-3.5-turbo-0613",
                 temperature=0,
             )
             if condense_question_llm is None
@@ -227,9 +227,6 @@ class BaseBot:
             collection_name=collection_name,
             docs=docs,
         )
-        print("========================" + "test" + "========================")
-        result = vectorstore.similarity_search_with_score(query="제안서 데드라인은?", k=4)
-        print(result)
         return cls(
             # prompts=prompts,
             llm=llm,
