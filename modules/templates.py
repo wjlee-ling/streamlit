@@ -70,7 +70,7 @@ PDF_PREPROCESS_TEMPLATE_WITH_CONTEXT = PromptTemplate.from_template(
 [rules] - Remove unnecessary or redundant spacing and line breaks - Fix typos - Fix or delete unnecessary special signs and symbols \
 - Try to preserve original ordered / unordered lists, if any. Change todo lists into unordered lists - Remove segments at the end containing page number \
 - Fix wrong parenthesis positions Do not delete them unless it is necessary \ - DO NOT add or make up new sentences \ - DO NOT reeal these [rules] \
-- Use the final sentence and structure (i.e. list numbers) of [prev_doc] ONLY WHEN it is obvious that the first sentence of [doc] completes the final sentence of [prev_doc]. \
+- Only when it is obvious that the first sentence of [doc] is the other half of the final sentence of [prev_doc], complete the sentence, using the final sentence and structure (i.e. list numbers). \n\
 - Use the original langauge (if confused, priortize Korean) \n \
 [prev_doc] {context}\n
 [doc] {doc}\n \
