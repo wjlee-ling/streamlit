@@ -1,5 +1,5 @@
 from time import time
-from typing import List, Union, Callable, Optional
+from typing import List, Dict, Union, Callable, Optional
 from abc import abstractmethod
 from langchain.schema import (
     BasePromptTemplate,
@@ -49,16 +49,25 @@ class BasePreprocessor:
         docs: List[Document],
         fn: Optional[Callable] = None,
     ) -> List[Document]:
+        self.file = open("./splits_output.txt", "w")
         start_preprocess = time()
         docs = self.preprocess(docs, fn)
         end_preprocess = time()
         print(
             f"☑️ Preprocessing took {(end_preprocess - start_preprocess):.3f} seconds for {len(docs)} document(s)."
         )
+
         start_split = time()
         docs = self._split(docs)
         end_split = time()
         print(
             f"☑️ Splitting into {len(docs)} newly split document(s) took {(end_split - start_split):.3f} seconds."
         )
+        self.file.close()
+        print(f"☑️ New splits saved to {self.file.name}.")
         return docs
+
+    def save_output(self, output: Dict):
+        from pprint import pprint
+
+        pprint(output, stream=self.file)

@@ -42,13 +42,14 @@ class PDFPreprocessor(BasePreprocessor):
         )  # returns: e.g. [{'doc': '안   녕 하세!요', 'output': '안녕하세요!'}, {'doc': '바보\n야 꺼~~~져!', 'output': '"바보야, 꺼져!"'}]
         # .apply 보다 2배 빠름
 
-        # new_docs = []
-        # with open("output_1018_with_prev.txt", "w") as f:
         for i, doc in enumerate(docs):
-            # f.write(f"\n=============== num: {str(i)} ===================\n")
-            # f.write(doc.page_content)
-            # f.write("-------------- revision ----------------\n")
-            # f.write(new_page_contents[i]["output"])
+            self.save_output(
+                {
+                    "original_page_content": doc.page_content,
+                    "revision": new_page_contents[i]["output"],
+                    "metadata": doc.metadata,
+                },
+            )
             doc.metadata["original_page_content"] = doc.page_content
             doc.page_content = new_page_contents[i]["output"]
 

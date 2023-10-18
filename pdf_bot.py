@@ -23,8 +23,3 @@ bot = BaseBot.from_new_collection(
     collection_name="woori_pdf_prev_md",
     preprocessor=preprocessor,
 )
-print(bot("우리은행이 진행하는 사업명은?"))
-print(bot("AI Banker 학습 데이터를 구축하려고 하는 회사는 어디인가?"))
-print(bot("사업 제안서는 어디다 제출하면 되나요?"))
-print(bot("제안 설명회는 언제 진행되나요?"))
-print(bot("제안서 관련 문의처는?"))
