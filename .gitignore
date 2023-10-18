@@ -5,3 +5,6 @@ db/
 # env
 Pipfile
 Pipfile.lock
+
+# txt files for test
+*.txt
