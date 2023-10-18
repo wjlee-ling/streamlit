@@ -67,6 +67,7 @@ class BaseBot:
             ChatOpenAI(
                 model_name="gpt-4",
                 temperature=0,
+                verbose=True,
             )
             if llm is None
             else llm
@@ -108,10 +109,11 @@ class BaseBot:
             condense_question_llm=self.condense_question_llm,
             condense_question_prompt=self.condense_question_prompt,
             combine_docs_chain_kwargs=docs_chain_kwargs,
-            rephrase_question=True,  # default: True; Will pass the new generated question for retrieval
+            rephrase_question=False,  # default: True; Will pass the new generated question for retrieval
             return_source_documents=True,
             get_chat_history=None,  # default: None -> will use default;
             response_if_no_docs_found="잘 모르겠습니다.",
+            verbose=True,
         )
 
     def __call__(self, question: str):
