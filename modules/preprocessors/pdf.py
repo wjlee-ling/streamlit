@@ -50,7 +50,7 @@ class PDFPreprocessor(BasePreprocessor):
         new_page_contents = self.chain.batch(
             list(
                 map(
-                    lambda doc: fn(doc) if fn,
+                    lambda doc: fn(doc) if fn else doc,
                     docs,
                 )
             )
