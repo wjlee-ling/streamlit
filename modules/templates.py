@@ -7,6 +7,12 @@ chain 타입에 따라 template의 포맷과 variable이 달라짐.
     커스텀하려면 `combine_docs_chain_kwargs`에 해당 prompt_type 명시해야함 (참고: https://github.com/langchain-ai/langchain/blob/c2d1d903fa35b91018b4d777db2b008fcbaa9fbc/langchain/chains/question_answering/__init__.py#L134)
 """
 from langchain.prompts import PromptTemplate
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
 
 
 rules = """[규칙] \
@@ -75,4 +81,15 @@ PDF_PREPROCESS_TEMPLATE_WITH_CONTEXT = PromptTemplate.from_template(
 [prev_doc] {context}\n
 [doc] {doc}\n \
 Revised doc : """
+)
+
+## Templates for augmenting questions
+system_prompt = SystemMessagePromptTemplate.from_template(
+    "Given the following [question] and [answer], generate new questions in its original language that fit the context of the [answer] and the original [question]"
+)
+human_prompt = HumanMessagePromptTemplate.from_template(
+    "[question] {question}\n[answer] {answer}\n[new questions] in JSON format: "
+)
+QUESTION_ANSWER_AUGMENTATION_TEMPLATE = ChatPromptTemplate.from_messages(
+    [system_prompt, human_prompt]
 )

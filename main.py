@@ -7,6 +7,7 @@ if "pysqlite3" in sys.modules:
 
 from modules.base import BaseBot
 from modules.compare import CompareBot
+from modules.intents.augmentators import Augmentator
 from modules.templates import (
     PDF_PREPROCESS_TEMPLATE,
     PDF_PREPROCESS_TEMPLATE_WITH_CONTEXT,
@@ -89,6 +90,11 @@ def init_compare_bot(collection_name, _embeddings):
     return bot
 
 
+@st.cache_resource
+def init_augmentator(model_name):
+    return Augmentator(model_name=model_name)
+
+
 @st.cache_data
 def get_info():
     return """
@@ -104,6 +110,8 @@ if "bot" not in sst:
     sst.bot = init_bot(COLLECTION_NAME, embeddings)
 if "compare_bot" not in sst:
     sst.comp_bot = init_compare_bot(COLLECTION_NAME_COMPARE, embeddings)
+if "augmentator" not in sst:
+    sst.augmentator = init_augmentator("gpt-3.5-turbo")
 
 if "messages" not in sst:
     sst.messages = []
@@ -185,6 +193,9 @@ if uploaded_file is not None:
 
                 with st.expander("cf. 기본 세팅값 + 전처리 없는 모델의 답변"):
                     st.markdown(comp_answer)
+
+                with st.expander("유사 질문 생성"):
+                    st.write(sst.augmentator.augment(prompt, answer))
 
                 # st.info(f"출처 문서: {output_string}\n\n출처 링크: {source_src}")
             # Add assistant response to chat history
