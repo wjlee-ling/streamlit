@@ -51,7 +51,16 @@ class BasePreprocessor:
         pass
 
     def _split(self, docs: List[Document]):
-        return self.splitter.split_documents(docs)
+        """
+        MarkdownHeaderTextSplitter 등은 `split_documents` 메소드 대신 .split_text 호출해야함.
+        """
+        try:
+            return self.splitter.split_documents(docs)
+        except AttributeError:
+            new_docs = []
+            for doc in docs:
+                new_docs.extend(self.splitter.split_text(doc))
+            return new_docs
 
     def _get_current_time(self):
         seoul_tz = timezone("Asia/Seoul")
