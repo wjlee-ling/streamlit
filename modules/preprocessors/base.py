@@ -1,4 +1,6 @@
 from time import time
+from datetime import datetime
+from pytz import timezone
 from typing import List, Dict, Union, Callable, Optional
 from abc import abstractmethod
 from langchain.schema import (
@@ -51,12 +53,18 @@ class BasePreprocessor:
     def _split(self, docs: List[Document]):
         return self.splitter.split_documents(docs)
 
+    def _get_current_time(self):
+        seoul_tz = timezone("Asia/Seoul")
+        curr_time = datetime.now(seoul_tz)
+        return curr_time.strftime("%Y-%m-%d-%H-%M")
+
     def preprocess_and_split(
         self,
         docs: List[Document],
         fn: Optional[Callable] = None,
     ) -> List[Document]:
-        self.file = open("./splits_output.txt", "w")
+        curr_time = self._get_current_time()
+        self.file = open(f"./splits_{curr_time}.txt", "w")
 
         start_preprocess = time()
         docs = self.preprocess(docs, fn)
