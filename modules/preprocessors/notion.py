@@ -10,19 +10,14 @@ from langchain.schema import (
     BaseDocumentTransformer,
 )
 from langchain.document_loaders import NotionDirectoryLoader
-from langchain.text_splitter import MarkdownHeaderTextSplitter
+from langchain.text_splitter import MarkdownHeaderTextSplitter, MarkdownTextSplitter
 
 
 class NotionPreprocessor(BasePreprocessor):
     @property
     def splitter(self):
         if self._splitter is None:
-            return MarkdownHeaderTextSplitter(
-                headers_to_split_on=[
-                    ("#", "#"),
-                    ("##", "##"),
-                ],  # (current_header, reformat_header)
-            )
+            return MarkdownTextSplitter()
         else:
             return self._splitter
 
@@ -42,7 +37,7 @@ class NotionPreprocessor(BasePreprocessor):
     ) -> Document:
         """마크다운 문서에서 포함된 하이퍼링크 스트링이 임베딩 되지 않게 "(link@{num})"으로 변환하고 메타데이터 리스트(인덱스{num})에 저장 (key는 'links')"""
         page_content = doc.page_content
-        num = 0
+        doc.metadata["links"] = []
         while match := re.search(
             r"(?<=\])\(%[A-Za-z0-9\/\(\)%\.]+",
             page_content,
@@ -51,18 +46,15 @@ class NotionPreprocessor(BasePreprocessor):
 
             if match.group().endswith(file_formats):
                 # 링크 스트링 메타 데이터에 추가
-                doc.metadata["links"] = doc.metadata.get("links", []).append(
-                    match.group().strip("()")
-                )
+                doc.metadata["links"].append(match.group().strip("()"))
 
                 # 링크 스트링 삭제
                 page_content = (
                     page_content[: match_start_idx - 1]
-                    + f"(link@{num})"
+                    + f"(link@{len(doc.metadata['links'])})"
                     + page_content[non_match_start_idx:]
                 )
 
-                num += 1
             else:
                 ## .png 등은 그냥 링크 삭제
                 page_content = (
@@ -77,16 +69,27 @@ class NotionPreprocessor(BasePreprocessor):
     def preprocess(
         self,
         docs: List[Document],
+        fn: Optional[Callable] = None,
     ) -> List[Document]:
         """
-        if the splitter is `MarkdownTextSplitter` add the headers
-
+        본문에 포함된 링크를 placeholder와 바꾸고, 메타데이터로 옮김
         """
+        fn = fn or self._handle_links
         ## page_content내 링크를 meta 데이터로 추가
-        docs = [self._handle_links(doc) for doc in docs]
+        docs = [fn(doc) for doc in docs]
         return docs
 
-    def postprocess(
+    def _split(
+        self,
+        docs: List[Document],
+    ) -> List[Document]:
+        """`.split_text(doc.page_content)` 한 결과물에 메타데이터로 헤더값 본문에 추가"""
+
+        chunks = self.splitter.split_documents(docs)  ## 💥 header 1은 넣는 것이 나은지?
+        chunks = self._aggregate_chunks(chunks)
+        return chunks
+
+    def _aggregate_chunks(
         self,
         chunks: List[Document],
     ) -> List[Document]:
@@ -115,6 +118,9 @@ class NotionPreprocessor(BasePreprocessor):
                 )
             else:
                 new_chunks.append(prev_chunk)
+                self.save_output(
+                    {"page_content": chunk.page_content, "metadata": chunk.metadata}
+                )
 
             prev_chunk = chunk
 
@@ -123,45 +129,8 @@ class NotionPreprocessor(BasePreprocessor):
 
         return new_chunks
 
-    def _split(
-        self,
-        docs: List[Document],
-    ) -> List[Document]:
-        """`.split_text(doc.page_content)` 한 결과물에 메타데이터로 헤더값 본문에 추가"""
-
-        new_chunks = []
-        for doc in docs:
-            src = doc.metadata["source"]
-            src_id = self._extract_doc_id(doc)
-            page_content = doc.page_content
-
-            ## 정한 헤더 레벨에 따라 chunking
-            chunks = self.splitter.split_text(page_content)
-
-            headers = self.splitter.headers_to_split_on
-            for _, header in headers:
-                if header in doc.metadata:
-                    doc.page_content = (
-                        header
-                        + " "
-                        + doc.metadata.pop(header)
-                        + "\n"
-                        + doc.page_content
-                    )
-            new_chunks.append(doc)
-
-    def preprocess_and_split(
-        self,
-        docs: List[Document],
-    ) -> List[Document]:
-        docs = self.preprocess(docs)
-        chunks = self._split(docs)
-        chunks = self.postprocess(chunks)
-
-        return chunks
-
 
 loader = NotionDirectoryLoader("data/notion/[DV-프롬프트타운]")
 docs = loader.load()
-processor = NotionPreprocessor(prompt=TEMPLATE_NOTION_DEFAULT)
+processor = NotionPreprocessor()
 docs = processor.preprocess_and_split(docs)

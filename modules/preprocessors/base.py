@@ -20,7 +20,7 @@ from langchain.text_splitter import (
 class BasePreprocessor:
     def __init__(
         self,
-        prompt: BasePromptTemplate,
+        prompt: BasePromptTemplate = None,
         llm: Union[BaseLanguageModel, BaseChatModel] = None,
         splitter: Optional[BaseDocumentTransformer] = None,
     ):
@@ -54,13 +54,7 @@ class BasePreprocessor:
         """
         MarkdownHeaderTextSplitter 등은 `split_documents` 메소드 대신 .split_text 호출해야함.
         """
-        try:
-            return self.splitter.split_documents(docs)
-        except AttributeError:
-            new_docs = []
-            for doc in docs:
-                new_docs.extend(self.splitter.split_text(doc))
-            return new_docs
+        return self.splitter.split_documents(docs)
 
     def _get_current_time(self):
         seoul_tz = timezone("Asia/Seoul")
