@@ -25,16 +25,17 @@ class BasePreprocessor:
         splitter: Optional[BaseDocumentTransformer] = None,
     ):
         self.prompt = prompt
-        self.llm = llm or ChatOpenAI(
-            model_name="gpt-3.5-turbo",
-            temperature=0,
-            verbose=True,
-        )
-        self.chain = LLMChain(
-            llm=self.llm,
-            prompt=self.prompt,
-            output_key="output",  # GPT 답변이 저장될 key; default='text'
-        )
+        if self.prompt is not None:
+            self.llm = llm or ChatOpenAI(
+                model_name="gpt-3.5-turbo",
+                temperature=0,
+                verbose=True,
+            )
+            self.chain = LLMChain(
+                llm=self.llm,
+                prompt=self.prompt,
+                output_key="output",  # GPT 답변이 저장될 key; default='text'
+            )
         self._splitter = splitter
 
     @abstractmethod
