@@ -10,10 +10,29 @@ from langchain.schema import (
     BaseDocumentTransformer,
 )
 from langchain.document_loaders import NotionDirectoryLoader
-from langchain.text_splitter import MarkdownHeaderTextSplitter, MarkdownTextSplitter
+from langchain.text_splitter import (
+    MarkdownHeaderTextSplitter,
+    MarkdownTextSplitter,
+    RecursiveCharacterTextSplitter,
+)
 
 
 class NotionPreprocessor(BasePreprocessor):
+    def __init__(
+        self,
+        splitter: Optional[BaseDocumentTransformer] = None,
+        sub_splitter: Optional[BaseDocumentTransformer] = None,
+        chunk_size: int = 800,
+        chunk_overlap: int = 100,
+    ):
+        super().__init__(splitter=splitter)
+        self._splitter = splitter
+        self.chunk_size = chunk_size
+        self.sub_splitter = sub_splitter or RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+        )
+
     @property
     def splitter(self):
         if self._splitter is None:
@@ -63,25 +82,46 @@ class NotionPreprocessor(BasePreprocessor):
 
         return doc
 
+    def _split_by_len(self, chunk: str) -> List[str]:
+        """self.chunk_size 보다 길면 sub_splitter로 split"""
+        if len(chunk) > self.chunk_size:
+            return self.sub_splitter.split_text(chunk)
+        else:
+            return [chunk]
+
     def _split(
         self,
         doc: Document,
     ) -> List[Document]:
-        """MarkdownHeaderTextSplitter는 `str`의 doc 하나만 처리 가능하므로 처리 후 관련 메타데이터 추가"""
-        metadata = doc.metadata
-        chunks = self.splitter.split_text(doc.page_content)
+        """
+        1. `MarkdownHeaderTextSplitter`는 `str`의 doc 하나만 처리 가능하므로 처리 후 기존 메타데이터 추가
+        2. 메타데이터로 들어간 헤더 정보 추가
+        3. `MarkdownHeaderTextSplitter`로 자른 결과가 너무 길 때 (원 문서에 헤더가 없어서) self.chunk_size 만큼 추가로 자름
+        """
+        original_metadata = doc.metadata
+        chunks = self.splitter.split_text(doc.page_content)  # split by headers
+        new_chunks = []
         for chunk in chunks:
-            chunk.metadata = {**metadata}
-        return chunks
+            for header_level, header_content in chunk.metadata.items():
+                chunk.page_content = (
+                    f"{header_level} {header_content}\n{chunk.page_content}"
+                )
+            splits_within_max_len = self._split_by_len(chunk.page_content)
+            new_chunks.extend(
+                [
+                    Document(
+                        page_content=split, metadata={**original_metadata}
+                    )  ## "source" 와 "links" 유지
+                    for split in splits_within_max_len
+                ]
+            )
+        return new_chunks
 
     def preprocess_and_split(
         self,
         docs: List[Document],
         fn: Optional[Callable] = None,
     ) -> List[Document]:
-        """
-        본문에 포함된 링크를 placeholder와 바꾸고, 메타데이터로 옮김
-        """
         new_chunks = []
         for doc in docs:
             # 본문에 포함된 링크를 placeholder와 바꾸고, 메타데이터로 옮김
@@ -89,6 +129,7 @@ class NotionPreprocessor(BasePreprocessor):
             chunks = self._split(doc)
             new_chunks.extend(chunks)
         new_chunks = self._aggregate_chunks(new_chunks)
+        self.save_output(new_chunks)
 
         return new_chunks
 
@@ -109,7 +150,6 @@ class NotionPreprocessor(BasePreprocessor):
                 # 맨 처음 chunk는 바로 prev_chunk
                 prev_chunk = chunk
                 continue
-
             if (
                 len(prev_chunk.page_content) + len(chunk.page_content) < 500
                 and prev_chunk.metadata["source"].split("/")[:-1]
@@ -124,9 +164,6 @@ class NotionPreprocessor(BasePreprocessor):
                 )
             else:
                 new_chunks.append(prev_chunk)
-                self.save_output(
-                    {"page_content": chunk.page_content, "metadata": chunk.metadata}
-                )
 
             prev_chunk = chunk
 
@@ -136,8 +173,7 @@ class NotionPreprocessor(BasePreprocessor):
         return new_chunks
 
 
-loader = NotionDirectoryLoader("data/test/notion")
-docs = loader.load()
-processor = NotionPreprocessor()
-docs = processor.preprocess_and_split(docs)
-print(docs)
+# loader = NotionDirectoryLoader("data/test/notion")
+# docs = loader.load()
+# processor = NotionPreprocessor()
+# docs = processor.preprocess_and_split(docs)

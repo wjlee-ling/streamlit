@@ -95,6 +95,7 @@ class BasePreprocessor:
         curr_time = self._get_current_time()
         with open(f"./splits_{curr_time}.txt", "w") as f:
             for doc in docs:
-                pprint(doc.page_content, stream=f)
+                f.write(doc.page_content + "\n")
                 pprint(doc.metadata, stream=f)
+                f.write("\n====================================================\n")
         print(f"☑️ New splits saved to {f.name}.")
