@@ -17,7 +17,7 @@ class NotionPreprocessor(BasePreprocessor):
     @property
     def splitter(self):
         if self._splitter is None:
-            return MarkdownTextSplitter()
+            return MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "#")])
         else:
             return self._splitter
 
@@ -39,34 +39,42 @@ class NotionPreprocessor(BasePreprocessor):
         page_content = doc.page_content
         doc.metadata["links"] = []
         while match := re.search(
-            r"(?<=\])\(%[A-Za-z0-9\/\(\)%\.]+",
+            r"(?<=\])\(%[A-Za-z0-9\/\(\)%\.~]+",
             page_content,
         ):
             (match_start_idx, non_match_start_idx) = match.span()
-
-            if match.group().endswith(file_formats):
+            if match.group().strip(")]}").endswith(file_formats):
                 # 링크 스트링 메타 데이터에 추가
                 doc.metadata["links"].append(match.group().strip("()"))
 
                 # 링크 스트링 삭제
                 page_content = (
-                    page_content[: match_start_idx - 1]
-                    + f"(link@{len(doc.metadata['links'])})"
+                    page_content[:match_start_idx]
+                    + f"(link@{len(doc.metadata['links'])-1})"
                     + page_content[non_match_start_idx:]
                 )
 
             else:
                 ## .png 등은 그냥 링크 삭제
                 page_content = (
-                    page_content[: match_start_idx - 1]
-                    + page_content[non_match_start_idx:]
+                    page_content[:match_start_idx] + page_content[non_match_start_idx:]
                 )
-
         doc.page_content = page_content
 
         return doc
 
-    def preprocess(
+    def _split(
+        self,
+        doc: Document,
+    ) -> List[Document]:
+        """MarkdownHeaderTextSplitter는 `str`의 doc 하나만 처리 가능하므로 처리 후 관련 메타데이터 추가"""
+        metadata = doc.metadata
+        chunks = self.splitter.split_text(doc.page_content)
+        for chunk in chunks:
+            chunk.metadata = {**metadata}
+        return chunks
+
+    def preprocess_and_split(
         self,
         docs: List[Document],
         fn: Optional[Callable] = None,
@@ -74,20 +82,15 @@ class NotionPreprocessor(BasePreprocessor):
         """
         본문에 포함된 링크를 placeholder와 바꾸고, 메타데이터로 옮김
         """
-        fn = fn or self._handle_links
-        ## page_content내 링크를 meta 데이터로 추가
-        docs = [fn(doc) for doc in docs]
-        return docs
+        new_chunks = []
+        for doc in docs:
+            # 본문에 포함된 링크를 placeholder와 바꾸고, 메타데이터로 옮김
+            doc = self._handle_links(doc)
+            chunks = self._split(doc)
+            new_chunks.extend(chunks)
+        new_chunks = self._aggregate_chunks(new_chunks)
 
-    def _split(
-        self,
-        docs: List[Document],
-    ) -> List[Document]:
-        """`.split_text(doc.page_content)` 한 결과물에 메타데이터로 헤더값 본문에 추가"""
-
-        chunks = self.splitter.split_documents(docs)  ## 💥 header 1은 넣는 것이 나은지?
-        chunks = self._aggregate_chunks(chunks)
-        return chunks
+        return new_chunks
 
     def _aggregate_chunks(
         self,
@@ -96,11 +99,14 @@ class NotionPreprocessor(BasePreprocessor):
         """
         `TextSplitter`가 자른 문서가 1. 길이가 너무 짧고 2. 같은 부모 디렉토리를 갖을 때 합치기 (+ 메타데이터 소스 수정)
         """
+        if len(chunks) == 1:
+            return chunks
+
         prev_chunk = None
         new_chunks = []
         for chunk in chunks:
             if prev_chunk is None:
-                # 맨 처음 chunk는 바로 prev_chjunk
+                # 맨 처음 chunk는 바로 prev_chunk
                 prev_chunk = chunk
                 continue
 
@@ -130,7 +136,8 @@ class NotionPreprocessor(BasePreprocessor):
         return new_chunks
 
 
-loader = NotionDirectoryLoader("data/notion/[DV-프롬프트타운]")
+loader = NotionDirectoryLoader("data/test/notion")
 docs = loader.load()
 processor = NotionPreprocessor()
 docs = processor.preprocess_and_split(docs)
+print(docs)
