@@ -68,7 +68,6 @@ class BasePreprocessor:
         fn: Optional[Callable] = None,
     ) -> List[Document]:
         curr_time = self._get_current_time()
-        self.file = open(f"./splits_{curr_time}.txt", "w")
 
         start_preprocess = time()
         docs = self.preprocess(docs, fn)
@@ -83,11 +82,19 @@ class BasePreprocessor:
         print(
             f"☑️ Splitting into {len(docs)} newly split document(s) took {(end_split - start_split):.3f} seconds."
         )
-        self.file.close()
-        print(f"☑️ New splits saved to {self.file.name}.")
+        self.save_output(docs)
+
         return docs
 
-    def save_output(self, output: Dict):
+    def save_output(
+        self,
+        docs: List[Document],
+    ):
         from pprint import pprint
 
-        pprint(output, stream=self.file)
+        curr_time = self._get_current_time()
+        with open(f"./splits_{curr_time}.txt", "w") as f:
+            for doc in docs:
+                pprint(doc.page_content, stream=f)
+                pprint(doc.metadata, stream=f)
+        print(f"☑️ New splits saved to {f.name}.")

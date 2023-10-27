@@ -58,13 +58,6 @@ class PDFPreprocessor(BasePreprocessor):
         # .apply 보다 2배 빠름
 
         for i, doc in enumerate(docs):
-            self.save_output(
-                {
-                    "original_page_content": doc.page_content,
-                    "revision": new_page_contents[i]["output"],
-                    "metadata": doc.metadata,
-                },
-            )
             doc.metadata["original_page_content"] = doc.page_content
             doc.page_content = new_page_contents[i]["output"]
 
