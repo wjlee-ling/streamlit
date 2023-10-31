@@ -2,6 +2,7 @@ from modules.preprocessors import BasePreprocessor
 from modules.templates import CONDENSE_QUESTION_TEMPLATE
 from utils import create_collection, create_save_collection
 
+import os
 import langchain
 from typing import Optional, Any, Dict, Union
 from langchain.schema import BaseDocumentTransformer
@@ -15,25 +16,15 @@ from langchain.memory import ConversationBufferMemory
 from langchain.cache import InMemoryCache
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
 from pydantic import BaseModel
-
-
-# class CustomPrompts(BaseModel):
-#     """
-#     Prompts for each chain type: 'stuff', 'map_reduce', 'refine', 'map-rerank'
-#     Refer to [langchain.chains.question_answering](https://github.com/langchain-ai/langchain/tree/c2d1d903fa35b91018b4d777db2b008fcbaa9fbc/langchain/chains/question_answering) for default prompts.
-#     """
-
-#     condense_question_prompt: BasePromptTemplate  # for first question condesing w/ context
-#     qa_prompt: BasePromptTemplate  # for final answer generation
-#     combine_prompt: Optional[BasePromptTemplate] = None  # for "map_reduce"
-#     collapse_prompt: Optional[BasePromptTemplate] = None  # for "map_reduce"
-#     refine_prompt: Optional[BasePromptTemplate] = None  # for "refine"
+from datetime import datetime
+from wandb.sdk.data_types.trace_tree import Trace
 
 
 class BaseBot:
     langchain.llm_cache = InMemoryCache()
+    os.environ["LANGCHAIN_WANDB_TRACING"] = "true"
+    os.environ["WANDB_PROJECT"] = "langchain"
 
     def __init__(
         self,
@@ -44,6 +35,7 @@ class BaseBot:
         vectorstore: Optional[VectorStore] = None,
         docs_chain_type: str = "stuff",
         docs_chain_kwargs: Optional[Dict] = None,
+        wandb_tracer: Optional[Trace] = None,
         configs: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
@@ -94,6 +86,22 @@ class BaseBot:
             return_messages=True,  # ☑️ required if return_source_documents=True
         )
 
+        self.wandb_tracer = wandb_tracer or Trace(
+            name="ConverationalRetrievalChain",
+            kind="chain",
+            start_time_ms=round(datetime.now().timestamp() * 1000),
+            metadata={
+                "llm": self.llm.__dict__["model_name"],
+                "temperature": self.llm.__dict__["temperature"],
+                "condense_question_llm": self.condense_question_llm.__dict__[
+                    "model_name"
+                ],
+                "condense_question_temperature": self.condense_question_llm.__dict__[
+                    "temperature"
+                ],
+            },
+        )
+
         # build a chain with the given components
         self.chain = ConversationalRetrievalChain.from_llm(
             # https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/chains/conversational_retrieval/base.py#L268
@@ -117,7 +125,11 @@ class BaseBot:
         )
 
     def __call__(self, question: str):
-        return self.chain(question)
+        response = self.chain(question)
+        self.wandb_tracer.add_inputs_and_outputs(
+            inputs={"question": question}, outputs={"response": response}
+        )
+        return response
 
     # def _validate_docs_chain_and_prompts(
     #     self, prompts, docs_chain_type: str, docs_chain_kwargs: Dict
