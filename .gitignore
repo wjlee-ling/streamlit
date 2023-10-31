@@ -10,3 +10,6 @@ Pipfile.lock
 
 # txt files for test
 *.txt
+
+# wandb logging
+wandb/
