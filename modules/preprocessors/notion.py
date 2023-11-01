@@ -84,6 +84,9 @@ class NotionPreprocessor(BasePreprocessor):
                 )
         doc.page_content = page_content
 
+        ## chromaDB does not allow List for metadata
+        doc.metadata["links"] = "^".join(doc.metadata["links"])
+
         return doc
 
     def _split_by_len(self, chunk: str) -> List[str]:
@@ -201,7 +204,7 @@ class NotionDataLoader(BaseLoader):
         """
         csv_files = list(Path(self.path).rglob("*.csv"))
         csv_files = [
-            file
+            file.as_posix()
             for file in csv_files
             if not file.with_stem(f"{file.stem}_all").exists()
         ]
