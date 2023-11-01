@@ -4,6 +4,7 @@ from utils import create_collection, create_save_collection
 
 import os
 import langchain
+import wandb
 from typing import Optional, Any, Dict, Union
 from langchain.schema import BaseDocumentTransformer
 from langchain.schema.prompt_template import BasePromptTemplate
@@ -24,7 +25,11 @@ from wandb.sdk.data_types.trace_tree import Trace
 class BaseBot:
     langchain.llm_cache = InMemoryCache()
     os.environ["LANGCHAIN_WANDB_TRACING"] = "true"
-    os.environ["WANDB_PROJECT"] = "langchain"
+    # os.environ["WANDB_PROJECT"] = "langchain"
+    wandb.init(
+        project="langchain",
+        entity="Wjlee-ling",
+    )
 
     def __init__(
         self,
