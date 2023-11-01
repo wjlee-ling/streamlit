@@ -13,3 +13,6 @@ Pipfile.lock
 
 # wandb logging
 wandb/
+
+# splits
+old/
