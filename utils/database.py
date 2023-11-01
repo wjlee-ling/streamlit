@@ -28,22 +28,31 @@ def create_save_collection(
     collection_name: str,
     docs: List[Document],
 ):
-    import chromadb
+    vectorstore = Chroma.from_documents(
+        docs,
+        OpenAIEmbeddings(),
+        persist_directory=f"db/chroma/{collection_name}",
+        collection_metadata={
+            "hnsw:space": "cosine"
+        },  # default is "l2" (https://docs.trychroma.com/usage-guide)
+    )
 
-    DB_DIR = "db/chroma/"
-    client_settings = chromadb.config.Settings(
-        chroma_db_impl="duckdb+parquet",
-        persist_directory=DB_DIR,
-        anonymized_telemetry=False,
-    )
-    embeddings = OpenAIEmbeddings()
-    vectorstore = Chroma(
-        collection_name=collection_name,
-        embedding_function=embeddings,
-        client_settings=client_settings,
-        persist_directory=DB_DIR,
-    )
-    vectorstore.add_documents(docs, embeddings)
-    vectorstore.persist()
+    # import chromadb
+
+    # DB_DIR = "db/chroma/"
+    # client_settings = chromadb.config.Settings(
+    #     chroma_db_impl="duckdb+parquet",
+    #     persist_directory=DB_DIR,
+    #     anonymized_telemetry=False,
+    # )
+    # embeddings = OpenAIEmbeddings()
+    # vectorstore = Chroma(
+    #     collection_name=collection_name,
+    #     embedding_function=embeddings,
+    #     client_settings=client_settings,
+    #     persist_directory=DB_DIR,
+    # )
+    # vectorstore.add_documents(docs, embeddings)
+    # vectorstore.persist()
 
     return vectorstore
