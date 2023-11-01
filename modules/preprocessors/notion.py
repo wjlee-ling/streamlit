@@ -4,12 +4,14 @@ from modules.templates_notion import TEMPLATE_NOTION_DEFAULT
 import re
 import glob
 from typing import List, Tuple, Dict, Union, Callable, Optional
+from pathlib import Path
 from langchain.schema import (
     BasePromptTemplate,
     Document,
     BaseDocumentTransformer,
 )
-from langchain.document_loaders import NotionDirectoryLoader
+from langchain.document_loaders.base import BaseLoader
+from langchain.document_loaders import NotionDirectoryLoader, CSVLoader
 from langchain.text_splitter import (
     MarkdownHeaderTextSplitter,
     MarkdownTextSplitter,
@@ -56,12 +58,14 @@ class NotionPreprocessor(BasePreprocessor):
     ) -> Document:
         """마크다운 문서에서 포함된 하이퍼링크 스트링이 임베딩 되지 않게 "(link@{num})"으로 변환하고 메타데이터 리스트(인덱스{num})에 저장 (key는 'links')"""
         page_content = doc.page_content
+        page_content_to_process = doc.page_content
         doc.metadata["links"] = []
         while match := re.search(
             r"(?<=\])\(%[A-Za-z0-9\/\(\)%\.~]+",
-            page_content,
+            page_content_to_process,
         ):
             (match_start_idx, non_match_start_idx) = match.span()
+            page_content_to_process = page_content[non_match_start_idx:]
             if match.group().strip(")]}").endswith(file_formats):
                 # 링크 스트링 메타 데이터에 추가
                 doc.metadata["links"].append(match.group().strip("()"))
@@ -173,7 +177,41 @@ class NotionPreprocessor(BasePreprocessor):
         return new_chunks
 
 
-# loader = NotionDirectoryLoader("data/test/notion")
-# docs = loader.load()
-# processor = NotionPreprocessor()
-# docs = processor.preprocess_and_split(docs)
+class NotionDataLoader(BaseLoader):
+
+    """
+    Notion 데이터 폴더의 markdown 파일과 csv 파일들을 로드. 현재 `NotionDirectoryLoader`는 디렉토리의 `md` 파일만
+    `CSVLoader`는 기타 csv 파일을 읽음
+    일단 현재(11/1)는 '_all'의 접미사가 붙지 않은 하위 페이지 포함하지 않은 데이터베이스만 읽음
+    """
+
+    def __init__(self, path: str, *, encoding: str = "utf-8-sig") -> None:
+        self.encoding = encoding
+        self.path = path
+        self.MD_Loader = None
+        self.CSV_Loader = None
+
+    def _load_markdown(self) -> List[Document]:
+        self.MD_Loader = NotionDirectoryLoader(path=self.path, encoding=self.encoding)
+        return self.MD_Loader.load()
+
+    def _load_csv(self) -> List[Document]:
+        """
+        Load csv files that do not have a corresponding `_all.csv` file, meaning they don't contain embedded sub-pages
+        """
+        csv_files = list(Path(self.path).rglob("*.csv"))
+        csv_files = [
+            file
+            for file in csv_files
+            if not file.with_stem(f"{file.stem}_all").exists()
+        ]
+        docs = []
+        for csv_file in csv_files:
+            self.CSV_Loader = CSVLoader(file_path=csv_file, encoding=self.encoding)
+            docs.extend(self.CSV_Loader.load())
+        return docs
+
+    def load(self):
+        markdown_docs = self._load_markdown()
+        csv_docs = self._load_csv()
+        return markdown_docs + csv_docs
