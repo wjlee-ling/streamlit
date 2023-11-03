@@ -58,14 +58,13 @@ class NotionPreprocessor(BasePreprocessor):
     ) -> Document:
         """마크다운 문서에서 포함된 하이퍼링크 스트링이 임베딩 되지 않게 "(link@{num})"으로 변환하고 메타데이터 리스트(인덱스{num})에 저장 (key는 'links')"""
         page_content = doc.page_content
-        page_content_to_process = doc.page_content
         doc.metadata["links"] = []
         while match := re.search(
             r"(?<=\])\(%[A-Za-z0-9\/\(\)%\.~]+",
-            page_content_to_process,
+            page_content,
         ):
             (match_start_idx, non_match_start_idx) = match.span()
-            page_content_to_process = page_content[non_match_start_idx:]
+
             if match.group().strip(")]}").endswith(file_formats):
                 # 링크 스트링 메타 데이터에 추가
                 doc.metadata["links"].append(match.group().strip("()"))
@@ -86,7 +85,6 @@ class NotionPreprocessor(BasePreprocessor):
 
         ## chromaDB does not allow List for metadata
         doc.metadata["links"] = "^".join(doc.metadata["links"])
-
         return doc
 
     def _split_by_len(self, chunk: str) -> List[str]:
