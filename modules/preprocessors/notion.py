@@ -66,15 +66,16 @@ class NotionPreprocessor(BasePreprocessor):
             (match_start_idx, non_match_start_idx) = match.span()
 
             if match.group().strip(")]}").endswith(file_formats):
-                # 링크 스트링 메타 데이터에 추가
-                doc.metadata["links"].append(match.group().strip("()"))
 
                 # 링크 스트링 삭제
                 page_content = (
                     page_content[:match_start_idx]
-                    + f"(link@{len(doc.metadata['links'])-1})"
+                    + f"(link@{len(doc.metadata['links'])})"
                     + page_content[non_match_start_idx:]
                 )
+
+                # 링크 스트링 메타 데이터에 추가
+                doc.metadata["links"].append(match.group().strip("()"))
 
             else:
                 ## .png 등은 그냥 링크 삭제
@@ -133,7 +134,7 @@ class NotionPreprocessor(BasePreprocessor):
             doc = self._handle_links(doc)
             chunks = self._split(doc)
             new_chunks.extend(chunks)
-        # new_chunks = self._aggregate_chunks(new_chunks) # 💥💥
+        # new_chunks = self._aggregate_chunks(new_chunks)
         self.save_output(new_chunks)
 
         return new_chunks
@@ -144,7 +145,6 @@ class NotionPreprocessor(BasePreprocessor):
     ) -> List[Document]:
         """
         `TextSplitter`가 자른 문서가 1. 길이가 너무 짧고 2. 같은 부모 디렉토리를 갖을 때 합치기 (+ 메타데이터 소스 수정)
-        💥 메타데이터의 데이터타입으로 리스트는 불가능하므로 '부모폴더/파일1&&파일2' 형태로 저장했으나, 추후 검색 후 링크 dereferencing 시 문제가 되어 사용안함
         """
         if len(chunks) == 1:
             return chunks
