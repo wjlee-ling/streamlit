@@ -1,5 +1,4 @@
 from modules.preprocessors import BasePreprocessor
-from modules.preprocessors.notion import LinkHandler
 from modules.templates import CONDENSE_QUESTION_TEMPLATE
 from utils import create_collection, create_save_collection
 
@@ -73,7 +72,7 @@ class LinkHandler(BaseCallbackHandler):
                             doc.page_content = (
                                 doc.page_content + f"\nlink@{idx} {link_content}"
                             )
-    
+
         return documents
 
 
