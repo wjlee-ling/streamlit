@@ -3,19 +3,24 @@
 ## How to Use
 
 1. 데이터베이스를 새로 만들기
+
 notion workspace에서 export 받아 unzip한 폴더를 load하여 데이터베이스 만들어야 함.
+
 `python -m notion_bot --new --collection_name "{새 데이터베이스 이름}" --path "{unzip한 데이터 폴더 위치}" `
 
-단축어 사용시
+- 단축어 사용시
+
 `python -m notion_bot -n -c "{새 데이터베이스 이름}" -p "{unzip한 데이터 폴더 위치}"`
 
 
 2. (데이터베이스 존재 시) QA
+
 `python -m notion_bot --collection_name "{기존 데이터베이스 이름}" --questions "{질문1} {질문2}"`
 
 질문 갯수에는 제한이 없음.
 
-단축어 사용시
+- 단축어 사용시
+
 `python -m notion_bot -c "{기존 데이터베이스 이름}" -q "{질문1} {질문2}"`
 
 ## Features
@@ -26,4 +31,3 @@ notion workspace에서 export 받아 unzip한 폴더를 load하여 데이터베�
 ### W&B
 - W&B 로 debugging 및 logging
 - CLI로 아이디 입력하는 기능은 아직 도입 안 함
- 
